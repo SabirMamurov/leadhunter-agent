@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadHunter — AI Поиск клиентов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ─── TOKENS ─── */
+        :root {
+            --cream: #f7f3ee;
+            --cream-dark: #ede7dd;
+            --paper: #faf8f5;
+            --terracotta: #c4714a;
+            --terra-dark: #a85a38;
+            --terra-light: #f0d5c5;
+            --warm-brown: #7c5c44;
+            --text: #2c2118;
+            --text-muted: #8a7060;
+            --border: #ddd5c8;
+            --white: #ffffff;
+            --success: #3a7d52;
+            --danger: #c0392b;
+            --info: #2e6da4;
+            --shadow: 0 2px 12px rgba(100, 60, 30, .10);
+            --shadow-lg: 0 8px 32px rgba(100, 60, 30, .15);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ─── AUTH SCREEN ─── */
+        #authScreen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--cream);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 700px 500px at 70% 40%, rgba(196, 113, 74, .13) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 10% 80%, rgba(196, 113, 74, .07) 0%, transparent 60%);
+        }
+
+        .auth-card {
+            position: relative;
+            width: 420px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            border: 1px solid var(--border);
+        }
+
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .auth-logo .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--terracotta);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .auth-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .auth-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .auth-sub {
+            color: var(--text-muted);
+            font-size: .9rem;
+            margin-bottom: 28px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--cream);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all .2s;
+        }
+
+        .auth-tab.active {
+            background: var(--white);
+            color: var(--terracotta);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: .85rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--warm-brown);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: .95rem;
+            font-family: inherit;
+            background: var(--paper);
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--terracotta);
+            background: #fff;
+        }
+
+        .form-input::placeholder {
+            color: #bbb;
+        }
+
+        .form-hint {
+            font-size: .78rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--terracotta);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .2s;
+            margin-top: 4px;
+        }
+
+        .btn-primary:hover {
+            background: var(--terra-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: none;
+        }
+
+        .btn-primary:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-error {
+            background: #fde8e8;
+            border: 1px solid #f5c6c6;
+            color: var(--danger);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: .88rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* ─── APP SHELL ─── */
+        #appScreen {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 240px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            padding: 24px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--terracotta);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo span {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .sidebar-section {
+            padding: 16px 12px 8px;
+            font-size: .72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-muted);
+        }
+
+        .status-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin: 2px 8px;
+            transition: all .15s;
+            font-size: .9rem;
+            color: var(--text-muted);
+            border: none;
+            background: transparent;
+            width: calc(100% - 16px);
+            text-align: left;
+        }
+
+        .status-nav-item:hover {
+            background: var(--cream);
+            color: var(--text);
+        }
+
+        .status-nav-item.active {
+            background: var(--terra-light);
+            color: var(--terracotta);
+            font-weight: 600;
+        }
+
+        .status-nav-item .count {
+            margin-left: auto;
+            background: var(--cream-dark);
+            color: var(--text-muted);
+            border-radius: 20px;
+            padding: 1px 7px;
+            font-size: .75rem;
+            font-weight: 600;
+        }
+
+        .status-nav-item.active .count {
+            background: var(--terracotta);
+            color: #fff;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            background: var(--terra-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--terracotta);
+            font-size: .9rem;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: .88rem;
+            font-weight: 600;
+        }
+
+        .user-email-small {
+            font-size: .75rem;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            margin-top: 10px;
+            width: 100%;
+            padding: 7px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            font-size: .82rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s;
+        }
+
+        .btn-logout:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: #fde8e8;
+        }
+
+        /* ─── MAIN CONTENT ─── */
+        .main-content {
+            margin-left: 240px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - 240px);
+        }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            width: 100%;
+        }
+
+        .topbar h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-input-wrap i {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: .9rem;
+        }
+
+        .topbar-input {
+            width: 100%;
+            padding: 9px 14px 9px 32px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: .9rem;
+            background: var(--paper);
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .topbar-input:focus {
+            border-color: var(--terracotta);
+            background: #fff;
+        }
+
+        .btn-terra {
+            padding: 9px 18px;
+            background: var(--terracotta);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: .88rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .btn-terra:hover {
+            background: var(--terra-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-terra:active {
+            transform: none;
+        }
+
+        .btn-outline {
+            padding: 9px 16px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: .88rem;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--terracotta);
+            color: var(--terracotta);
+            background: var(--terra-light);
+        }
+
+        /* ─── PAGE BODY ─── */
+        .page-body {
+            padding: 24px 28px;
+            flex: 1;
+            width: 100%;
+        }
+
+        /* ─── COMPANY CARDS GRID ─── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            width: 100%;
+        }
+
+        @media (max-width: 1300px) {
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .cards-grid { grid-template-columns: 1fr; }
+        }
+
+        .company-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+        }
+
+        .company-card:hover {
+            border-color: var(--terracotta);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .card-num {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: .75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .card-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            padding-right: 36px;
+        }
+
+        .card-category {
+            font-size: .8rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: .82rem;
+            color: var(--warm-brown);
+            margin-bottom: 14px;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-desc {
+            font-size: .82rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* ─── STATUS BADGES ─── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 600;
+        }
+
+        .badge-new {
+            background: #e8f0fb;
+            color: #2e6da4;
+        }
+
+        .badge-email_sent {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-replied {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-in_progress {
+            background: #f3e5ff;
+            color: #6f42c1;
+        }
+
+        .badge-interested {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-rejected {
+            background: #fde8e8;
+            color: var(--danger);
+        }
+
+        .badge-closed {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .chat-bubble-icon {
+            font-size: .8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* ─── LOADER OVERLAY ─── */
+        #loader {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(247, 243, 238, .85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 14px;
+            backdrop-filter: blur(3px);
+        }
+
+        .loader-spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border);
+            border-top-color: var(--terracotta);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loaderText {
+            font-size: .95rem;
+            color: var(--warm-brown);
+            font-weight: 500;
+        }
+
+        /* ─── TOAST ─── */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--text);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: .9rem;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all .3s;
+            pointer-events: none;
+            max-width: 340px;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(44, 33, 24, .4);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--white);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-box.modal-lg {
+            max-width: 800px;
+        }
+
+        .modal-header {
+            padding: 22px 26px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 2;
+            border-radius: 18px 18px 0 0;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-subtitle {
+            font-size: .82rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .modal-close {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: all .15s;
+            flex-shrink: 0;
+        }
+
+        .modal-close:hover {
+            background: var(--cream);
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 22px 26px;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 26px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* ─── TABS inside modal ─── */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 18px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: .9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all .15s;
+        }
+
+        .tab-btn.active {
+            color: var(--terracotta);
+            border-bottom-color: var(--terracotta);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* ─── INFO ROW ─── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .info-item label {
+            font-size: .75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .info-item span {
+            font-size: .9rem;
+            color: var(--text);
+        }
+
+        /* ─── FORM ELEMENTS in modal ─── */
+        .modal-input,
+        .modal-textarea,
+        .modal-select {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: .9rem;
+            background: var(--paper);
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .modal-input:focus,
+        .modal-textarea:focus,
+        .modal-select:focus {
+            border-color: var(--terracotta);
+            background: #fff;
+        }
+
+        .modal-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .field-label {
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--warm-brown);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .field-group {
+            margin-bottom: 14px;
+        }
+
+        /* ─── EMAIL PREVIEW ─── */
+        .email-preview {
+            background: var(--paper);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
+        .email-subject-label {
+            font-size: .75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .email-subject-val {
+            font-size: .95rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .email-body-text {
+            font-size: .88rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--text);
+        }
+
+        /* ─── CHAT ─── */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding: 4px 0 16px;
+        }
+
+        .chat-msg {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+
+        .chat-msg.outgoing {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .chat-msg.incoming {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .chat-bubble {
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: .88rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .chat-msg.outgoing .chat-bubble {
+            background: var(--terracotta);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-msg.incoming .chat-bubble {
+            background: var(--cream);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .chat-meta {
+            font-size: .72rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .chat-empty {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: .88rem;
+            padding: 24px;
+        }
+
+        .chat-input-bar {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .chat-input-bar textarea {
+            flex: 1;
+            padding: 10px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: .9rem;
+            background: var(--paper);
+            color: var(--text);
+            outline: none;
+            resize: none;
+            min-height: 42px;
+            max-height: 120px;
+            transition: border-color .2s;
+        }
+
+        .chat-input-bar textarea:focus {
+            border-color: var(--terracotta);
+            background: #fff;
+        }
+
+        .btn-send-chat {
+            padding: 10px 14px;
+            background: var(--terracotta);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+
+        .btn-send-chat:hover {
+            background: var(--terra-dark);
+        }
+
+        /* ─── DEMO INCOMING BTN ─── */
+        .demo-btn {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-sm);
+            font-size: .8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s;
+            margin-top: 8px;
+        }
+
+        .demo-btn:hover {
+            border-color: var(--terracotta);
+            color: var(--terracotta);
+            background: var(--terra-light);
+        }
+
+        /* ─── ACTION BUTTONS in modal footer ─── */
+        .btn-success-outline {
+            padding: 9px 18px;
+            background: transparent;
+            border: 1.5px solid var(--success);
+            color: var(--success);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: .88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+        }
+
+        .btn-success-outline:hover {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn-terra-sm {
+            padding: 9px 18px;
+            background: var(--terracotta);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: .88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+        }
+
+        .btn-terra-sm:hover {
+            background: var(--terra-dark);
+        }
+
+        .btn-terra-sm:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .btn-neutral {
+            padding: 9px 18px;
+            background: var(--cream);
+            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: .88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .btn-neutral:hover {
+            background: var(--cream-dark);
+            color: var(--text);
+        }
+
+        /* ─── STATUS SELECT ─── */
+        .status-select-wrap label {
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--warm-brown);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* ─── SPINNER inline ─── */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: inline-block;
+        }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ─── UTILS ─── */
+        .hidden {
+            display: none !important;
+        }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        .mt-3 {
+            margin-top: 14px;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-size: .85rem;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ──────────────────── AUTH SCREEN ──────────────────── -->
+    <div id="authScreen">
+        <div class="auth-bg"></div>
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="logo-icon"><i class="bi bi-robot"></i></div>
+                <span>LeadHunter</span>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Вход</button>
+                <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Регистрация</button>
+            </div>
+
+            <div id="authError" class="auth-error"></div>
+
+            <!-- LOGIN -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="you@company.ru">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+                </div>
+                <button class="btn-primary" id="loginBtn" onclick="doLogin()">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </button>
+            </div>
+
+            <!-- REGISTER -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label class="form-label">Ваше имя</label>
+                    <input type="text" id="regName" class="form-input" placeholder="Имя Фамилия">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email для входа</label>
+                    <input type="email" id="regEmail" class="form-input" placeholder="you@company.ru">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email для отправки писем клиентам</label>
+                    <input type="email" id="regSendEmail" class="form-input" placeholder="sales@siberia.eco">
+                    <div class="form-hint">С этого адреса будут отправляться коммерческие предложения</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" id="regPassword" class="form-input" placeholder="Минимум 6 символов">
+                </div>
+                <button class="btn-primary" id="registerBtn" onclick="doRegister()">
+                    <i class="bi bi-person-plus"></i> Создать аккаунт
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────────── APP SCREEN ──────────────────── -->
+    <div id="appScreen">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="bi bi-search-heart"></i></div>
+                <span>LeadHunter</span>
+            </div>
+
+            <div class="sidebar-section">Диалоги</div>
+
+            <button class="status-nav-item active" id="nav-all" onclick="setStatusFilter(null)">
+                <i class="bi bi-grid-2x2"></i> Все диалоги
+                <span class="count" id="cnt-all">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-new" onclick="setStatusFilter('new')">
+                <i class="bi bi-circle"></i> Новые
+                <span class="count" id="cnt-new">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-email_sent" onclick="setStatusFilter('email_sent')">
+                <i class="bi bi-send"></i> Письмо отправлено
+                <span class="count" id="cnt-email_sent">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-replied" onclick="setStatusFilter('replied')">
+                <i class="bi bi-reply"></i> Ответили
+                <span class="count" id="cnt-replied">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-in_progress" onclick="setStatusFilter('in_progress')">
+                <i class="bi bi-clock-history"></i> В работе
+                <span class="count" id="cnt-in_progress">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-interested" onclick="setStatusFilter('interested')">
+                <i class="bi bi-star"></i> Заинтересованы
+                <span class="count" id="cnt-interested">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-rejected" onclick="setStatusFilter('rejected')">
+                <i class="bi bi-x-circle"></i> Отказ
+                <span class="count" id="cnt-rejected">0</span>
+            </button>
+            <button class="status-nav-item" id="nav-closed" onclick="setStatusFilter('closed')">
+                <i class="bi bi-archive"></i> Закрыто
+                <span class="count" id="cnt-closed">0</span>
+            </button>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="sidebarAvatar">А</div>
+                    <div>
+                        <div class="user-name" id="sidebarName">—</div>
+                        <div class="user-email-small" id="sidebarSendEmail">—</div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="doLogout()">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <h1 id="topbarTitle">Все диалоги</h1>
+                <div class="search-input-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="categoryInput" class="topbar-input"
+                        placeholder="Ниша и город, например: Кейтеринг Томск">
+                </div>
+                <button class="btn-terra" onclick="searchCompanies()">
+                    <i class="bi bi-globe2"></i> Найти компании
+                </button>
+                <button class="btn-outline" onclick="sendToAllNew()">
+                    <i class="bi bi-envelope-paper"></i> Разослать всем
+                </button>
+            </div>
+
+            <!-- PAGE BODY -->
+            <div class="page-body">
+                <div class="cards-grid" id="cardsGrid"></div>
+                <div class="empty-state hidden" id="emptyState">
+                    <i class="bi bi-inbox"></i>
+                    <p>Нет диалогов в этом разделе.<br>Воспользуйтесь поиском, чтобы найти компании.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────────── COMPANY MODAL ──────────────────── -->
+    <div class="modal-overlay" id="companyModal">
+        <div class="modal-box modal-lg">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="mCompanyName">—</div>
+                    <div class="modal-subtitle" id="mCompanyCategory">—</div>
+                </div>
+                <button class="modal-close" onclick="closeModal('companyModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="modalCompanyId">
+
+                <!-- Info grid -->
+                <div class="info-grid">
+                    <div class="info-item"><label>Email компании</label><span id="mEmail">—</span></div>
+                    <div class="info-item"><label>Телефон</label><span id="mPhone">—</span></div>
+                    <div class="info-item"><label>Сайт</label><span id="mWeb">—</span></div>
+                    <div class="info-item">
+                        <label>Статус</label>
+                        <select class="modal-select" id="mStatusSelect" onchange="updateStatus()"
+                            style="padding:4px 8px;font-size:.82rem;">
+                            <option value="new">Новые</option>
+                            <option value="email_sent">Письмо отправлено</option>
+                            <option value="replied">Ответили</option>
+                            <option value="in_progress">В работе</option>
+                            <option value="interested">Заинтересованы</option>
+                            <option value="rejected">Отказ</option>
+                            <option value="closed">Закрыто</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" onclick="switchModalTab('letter')">✉ Письмо</button>
+                    <button class="tab-btn" onclick="switchModalTab('chat')">💬 Переписка</button>
+                </div>
+
+                <!-- LETTER TAB -->
+                <div class="tab-pane active" id="tabLetter">
+                    <!-- No letter yet -->
+                    <div id="noLetterArea" class="hidden">
+                        <div class="empty-state" style="padding:32px 0 16px;">
+                            <i class="bi bi-envelope" style="font-size:2rem;margin-bottom:8px;"></i>
+                            <p>Письмо ещё не сгенерировано</p>
+                        </div>
+                    </div>
+
+                    <!-- Letter preview -->
+                    <div id="letterPreview" class="hidden">
+                        <div class="email-preview">
+                            <div class="email-subject-label">Тема</div>
+                            <div class="email-subject-val" id="mEmailSubject">—</div>
+                            <hr class="divider" style="margin:10px 0;">
+                            <div class="email-body-text" id="mEmailBody">—</div>
+                        </div>
+                        <p class="text-muted mt-2" style="font-size:.78rem;">
+                            <i class="bi bi-file-earmark-pdf"></i> К письму будет приложен PDF-каталог (siberia.eco)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CHAT TAB -->
+                <div class="tab-pane" id="tabChat">
+                    <div class="chat-container" id="chatContainer">
+                        <div class="chat-empty" id="chatEmpty">Переписка пока пуста</div>
+                    </div>
+                    <div class="chat-input-bar">
+                        <textarea id="chatInput" placeholder="Написать сообщение..." rows="1"
+                            onkeydown="chatKeyDown(event)"></textarea>
+                        <button class="btn-send-chat" onclick="sendChatMessage()">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                    <button class="demo-btn" onclick="simulateReply()">
+                        <i class="bi bi-lightning-charge"></i> ДЕМО: симулировать ответ клиента
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-neutral" onclick="closeModal('companyModal')">Закрыть</button>
+                <button class="btn-terra-sm hidden" id="btnGenerate" onclick="generateAndPreview()">
+                    <i class="bi bi-magic"></i> Сгенерировать AI письмо
+                </button>
+                <button class="btn-success-outline hidden" id="btnSend" onclick="sendEmail()">
+                    <i class="bi bi-send"></i> Отправить письмо
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader">
+        <div class="loader-spinner"></div>
+        <div id="loaderText">Загрузка...</div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
